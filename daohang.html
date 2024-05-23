@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" >
+		<title>alist</title>
+		
+	</head>
+	<script>
+		var urls ="https://web.linksprit.xyz:16666";
+		window.onload=function(){
+       		   var div=document.getElementById("msg");
+      		   var time=2;
+        		   var timer=setInterval(function(){
+          		    if(time==0){
+               		        location.href= urls
+           		    }else{
+               		         div.innerHTML="将在 "+time+" 秒后跳转";
+                		 time--; 
+      		     }
+   		},1000)
+	             }
+ 		 window.onblur = function () {
+    		  	document.title = "退出页面";
+			    clearInterval(timer)
+  		}
+  		window.onfocus = function () {
+      			document.title = "进入页面";
+  		}
+	</script>
+	<body >
+		<p id='msg'></p><br>
+ 		<a href="https://web.linksprit.xyz:16666" target="_blank">外网导航</a> <br> <br> 
+	
+		<a href="http://192.168.0.5:3002" target="_blank">内网导航</a> <br> <br> 
+	</body>
+</html>

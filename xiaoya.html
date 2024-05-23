@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" >
+		<title>xiaoya</title>
+		
+	</head>
+	<script>
+		var urls ="https://xiaoya.linksprit.xyz:16666";
+		window.onload=function(){
+       		   var div=document.getElementById("msg");
+      		   var time=2;
+        		   var timer=setInterval(function(){
+          		    if(time==0){
+               		        location.href= urls 
+           		    }else{
+               		         div.innerHTML="将在 "+time+" 秒后跳转";
+                		 time--; 
+      		     }
+   		},1000)
+	             }
+		  window.onblur = function () {
+    		  	document.title = "退出页面";
+			    clearInterval(timer)
+  		}
+  		window.onfocus = function () {
+      			document.title = "进入页面";
+  		}
+	</script>
+	<body >
+	   <div onclick = onclick1>
+		<p id='msg'></p><br>
+ 		<a href="https://xiaoya.linksprit.xyz:16666" target="_blank">ipv6-小雅超集</a> <br> <br> 
+		<a href="https://30y7117g16.vicp.fun/" target="_blank">ipv4-小雅</a> <br> <br> 
+		<a href="http://192.168.0.5:5678" target="_blank">内网小雅超集</a> <br> <br> 
+	   </div>	
+	</body>
+</html>
