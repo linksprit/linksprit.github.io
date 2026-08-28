@@ -1,14 +1,200 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <title>跳转页面 - 节点小宝穿透页面</title>
-    <script>
-        // 立即跳转
-        window.location.href = "https://linksprit.iepose.cn/";
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络入口智能选择</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:40px 20px;background:#f5f7fa;color:#222;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.container{max-width:520px;width:100%;background:#fff;padding:32px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+.status{font-size:18px;margin-bottom:12px;font-weight:500;}
+.ok{color:#00a854;}
+.no{color:#f5222d;}
+.detecting{color:#1677ff;}
+.countdown{font-size:14px;color:#666;margin-bottom:20px;min-height:20px;}
+.ping-box{margin-bottom:20px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;display:none;}
+.ping-box ul{list-style:none;margin-top:8px;}
+.ping-box li{display:flex;justify-content:space-between;padding:4px 0;color:#555;}
+.ping-box li.fast{color:#00a854;}
+.btns{display:flex;flex-direction:column;gap:14px;}
+a.btn{display:block;text-align:center;padding:14px 16px;border-radius:10px;text-decoration:none;font-size:16px;font-weight:500;transition:0.2s;}
+a.btn-primary{background:#1677ff;color:#fff;}
+a.btn-primary:hover{background:#0958d9;}
+a.btn-secondary{background:#eef2f7;color:#222;}
+a.btn-secondary:hover{background:#dde3ec;}
+.tip-note{margin-top:24px;font-size:13px;color:#888;text-align:center;line-height:1.6;}
+</style>
 </head>
 <body>
-    <a href="https://www.baidu.com">跳转</a>
+<div class="container">
+<div id="statusText" class="status detecting">⚡ 正在检测网络环境…</div>
+<div id="cdText" class="countdown"></div>
+
+<!-- 备用线路延迟展示区 -->
+<div id="pingBox" class="ping-box">
+  <div>📊 IPv4 备用线路延迟检测：</div>
+  <ul id="pingList"></ul>
+</div>
+
+<div id="btnGroup" class="btns"></div>
+
+<div class="tip-note">
+提示：IPv6直连为HTTP/HTTPS高速家庭链路；无IPv6时默认走 Cloudflare 节点，直连线路流量有限请谨慎使用。
+</div>
+</div>
+
+<script>
+// 1. 线路链接定义
+const LINKS = {
+    ipv6Yes: [
+        { name: "网站A-高速直连", url: "http://linksprit.yyboxdns.com:5244/" },
+        { name: "网站B-IPv6入口", url: "https://783326209.xyz:1524/" }
+    ],
+    ipv6No: [
+        { name: "Cloudflare 首选入口", url: "https://pan.783326209.xyz/" },     // 默认第一选
+        { name: "NAT中转入口", url: "https://nat77.yyboxdns.com:11558" },
+        { name: "IPv4直连备用 (限流量)", url: "https://linksprit.iepose.cn/" } 
+    ]
+};
+
+const DETECT_TIMEOUT = 1200; // IPv6 检测超时 (ms)
+const AUTO_COUNT = 8;        // 跳转倒计时 (s)
+
+// 2. IPv6 快速检测
+function checkSingleIPv6(url, timeout) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const timer = setTimeout(() => { img.src = ""; reject(); }, timeout);
+        img.onload = img.onerror = () => { clearTimeout(timer); resolve(true); };
+        img.src = url + "?t=" + Date.now();
+    });
+}
+
+async function detectIPv6() {
+    const nodes = [
+        "https://v6.ipv6-test.de/img/empty.gif",
+        "https://ipv6.test-ipv6.com/images-idx/00.gif"
+    ];
+    try {
+        await Promise.any(nodes.map(url => checkSingleIPv6(url, DETECT_TIMEOUT)));
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// 3. 对输入的 URL 发起简单的 HTTP 延迟测试
+function testUrlLatency(targetUrl, timeout = 1800) {
+    return new Promise((resolve) => {
+        const start = performance.now();
+        const img = new Image();
+        let handled = false;
+        
+        const timer = setTimeout(() => {
+            if (!handled) { handled = true; img.src = ""; resolve(Infinity); }
+        }, timeout);
+
+        img.onload = img.onerror = () => {
+            if (!handled) {
+                handled = true;
+                clearTimeout(timer);
+                resolve(Math.round(performance.now() - start));
+            }
+        };
+
+        // 通过拼接 favicon.ico 进行链接测速
+        try {
+            const urlObj = new URL(targetUrl);
+            img.src = `${urlObj.origin}/favicon.ico?t=${Date.now()}`;
+        } catch(e) {
+            img.src = targetUrl + "?t=" + Date.now();
+        }
+    });
+}
+
+// 并发测试 IPv4 的三个入口延迟
+async function checkIPv4Latencies() {
+    const box = document.getElementById("pingBox");
+    const listEl = document.getElementById("pingList");
+    box.style.display = "block";
+
+    // 对 ipv6No 中的 3 个网址并发测速
+    const tasks = LINKS.ipv6No.map(async (item) => {
+        const latency = await testUrlLatency(item.url);
+        return { name: item.name, latency };
+    });
+
+    const results = await Promise.all(tasks);
+
+    // 渲染延迟列表
+    listEl.innerHTML = "";
+    results.forEach((item) => {
+        const li = document.createElement("li");
+        const msText = item.latency === Infinity ? "超时" : `${item.latency} ms`;
+        if (item.latency < 200) li.className = "fast";
+        li.innerHTML = `<span>${item.name}</span><span>${msText}</span>`;
+        listEl.appendChild(li);
+    });
+}
+
+// 4. 渲染按钮与倒计时
+function renderButtons(list){
+    const box = document.getElementById("btnGroup");
+    box.innerHTML = "";
+    list.forEach((item, idx) => {
+        const a = document.createElement("a");
+        a.className = idx === 0 ? "btn btn-primary" : "btn btn-secondary";
+        a.href = item.url;
+        a.textContent = item.name;
+        box.appendChild(a);
+    });
+}
+
+function startCountdown(sec, callback){
+    let t = sec;
+    const el = document.getElementById("cdText");
+    el.innerText = `倒计时 ${t} 秒，自动跳转至 Cloudflare 入口`;
+    
+    const timer = setInterval(() => {
+        t -= 1;
+        if (t < 0) {
+            clearInterval(timer);
+            callback();
+        } else {
+            el.innerText = `倒计时 ${t} 秒，自动跳转至 Cloudflare 入口`;
+        }
+    }, 1000);
+}
+
+// 5. 主程序逻辑
+(async function main(){
+    const statusEl = document.getElementById("statusText");
+    const hasIPv6 = await detectIPv6();
+
+    if (hasIPv6) {
+        statusEl.className = "status ok";
+        statusEl.innerText = "✅ 当前网络支持 IPv6";
+        renderButtons(LINKS.ipv6Yes);
+        startCountdown(AUTO_COUNT, () => {
+            location.assign(LINKS.ipv6Yes[0].url);
+        });
+    } else {
+        statusEl.className = "status no";
+        statusEl.innerText = "❌ 当前无可用 IPv6，已切换至备用线路";
+        
+        // 渲染按顺序排列的按钮（Cloudflare 为首选蓝色按钮）
+        renderButtons(LINKS.ipv6No);
+
+        // 后台并发检测 3 个网址的延迟并展示在页面上
+        checkIPv4Latencies();
+
+        // 倒计时结束后固定跳转至第 1 个入口（即 Cloudflare 首选入口）
+        startCountdown(AUTO_COUNT, () => {
+            location.assign(LINKS.ipv6No[0].url);
+        });
+    }
+})();
+</script>
 </body>
 </html>
