@@ -4,11 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>网络入口智能选择</title>
+
+<!-- GitHub Pages 专属优化：预解析核心域名 DNS -->
+<link rel="dns-prefetch" href="//pan.783326209.xyz">
+<link rel="dns-prefetch" href="//783326209.xyz">
+<link rel="dns-prefetch" href="//nat77.yyboxdns.com">
+<link rel="dns-prefetch" href="//linksprit.iepose.cn">
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:40px 20px;background:#f5f7fa;color:#222;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
-.container{max-width:520px;width:100%;background:#fff;padding:32px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
-.status{font-size:18px;margin-bottom:12px;font-weight:500;}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:30px 16px;background:#f5f7fa;color:#222;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.container{max-width:560px;width:100%;background:#fff;padding:28px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+.status{font-size:18px;margin-bottom:10px;font-weight:600;}
 .ok{color:#00a854;}
 .no{color:#f5222d;}
 .detecting{color:#1677ff;}
@@ -17,13 +24,22 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;pad
 .ping-box ul{list-style:none;margin-top:8px;}
 .ping-box li{display:flex;justify-content:space-between;padding:4px 0;color:#555;}
 .ping-box li.fast{color:#00a854;}
-.btns{display:flex;flex-direction:column;gap:14px;}
-a.btn{display:block;text-align:center;padding:14px 16px;border-radius:10px;text-decoration:none;font-size:16px;font-weight:500;transition:0.2s;}
+.btns{display:flex;flex-direction:column;gap:12px;}
+a.btn{display:block;text-align:center;padding:12px 16px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:500;transition:0.2s;}
 a.btn-primary{background:#1677ff;color:#fff;}
 a.btn-primary:hover{background:#0958d9;}
 a.btn-secondary{background:#eef2f7;color:#222;}
 a.btn-secondary:hover{background:#dde3ec;}
-.tip-note{margin-top:24px;font-size:13px;color:#888;text-align:center;line-height:1.6;}
+
+/* 新增底部导航区样式 */
+.section-title{margin-top:28px;margin-bottom:12px;font-size:15px;font-weight:600;color:#333;border-left:4px solid #1677ff;padding-left:8px;}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:10px;}
+.service-card{display:flex;flex-direction:column;padding:12px;background:#f8f9fa;border:1px solid #eef2f7;border-radius:8px;text-decoration:none;color:#333;transition:0.2s;}
+.service-card:hover{background:#eef2f7;border-color:#d0d7de;}
+.service-name{font-size:14px;font-weight:500;margin-bottom:4px;}
+.service-tag{font-size:11px;color:#888;}
+
+.tip-note{margin-top:24px;font-size:12px;color:#888;text-align:center;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -37,7 +53,12 @@ a.btn-secondary:hover{background:#dde3ec;}
   <ul id="pingList"></ul>
 </div>
 
+<!-- 核心导航按钮 (自动判定类型跳转) -->
 <div id="btnGroup" class="btns"></div>
+
+<!-- 底部服务导航列表 -->
+<div class="section-title">📌 服务快捷导航</div>
+<div id="servicesGroup" class="services-grid"></div>
 
 <div class="tip-note">
 提示：IPv6直连为HTTP/HTTPS高速家庭链路；无IPv6时默认走 Cloudflare 节点，直连线路流量有限请谨慎使用。
@@ -45,23 +66,32 @@ a.btn-secondary:hover{background:#dde3ec;}
 </div>
 
 <script>
-// 1. 线路链接定义
+// 1. 核心分流入口
 const LINKS = {
     ipv6Yes: [
-        { name: "网站A-高速直连", url: "http://linksprit.yyboxdns.com:5244/" },
-        { name: "网站B-IPv6入口", url: "https://783326209.xyz:1524/" }
+        { name: "easylist (IPv6直连)", url: "http://783326209.xyz:1524" },
+        { name: "NAS-WebDAV (IPv6直连)", url: "http://783326209.xyz:1505" }
     ],
     ipv6No: [
-        { name: "Cloudflare 首选入口", url: "https://pan.783326209.xyz/" },     // 默认第一选
+        { name: "Cloudflare 首选入口", url: "https://pan.783326209.xyz/" },     
         { name: "NAT中转入口", url: "https://nat77.yyboxdns.com:11558" },
         { name: "IPv4直连备用 (限流量)", url: "https://linksprit.iepose.cn/" } 
     ]
 };
 
+// 2. 底部服务列表数据（支持 IPv4 / IPv6 / 内网 智能映射）
+const SERVICES = [
+    { name: "easylist", v4: "http://pan.783326209.xyz", v6: "http://783326209.xyz:1524", lan: "http://192.168.2.105:5244" },
+    { name: "NAS-WebDAV", v4: "http://dav.783326209.xyz", v6: "http://783326209.xyz:1505", lan: "http://192.168.2.105:5005" },
+    { name: "收藏夹", v4: "https://book.783326209.xyz", v6: "http://783326209.xyz:1392", lan: "http://192.168.2.105:35092" },
+    { name: "Lucky管理面板", v4: "", v6: "", lan: "http://192.168.2.105:16601/" },
+    { name: "xiaomi服务", v4: "", v6: "", lan: "http://192.168.2.105:35041/" }
+];
+
 const DETECT_TIMEOUT = 1200; // IPv6 检测超时 (ms)
 const AUTO_COUNT = 8;        // 跳转倒计时 (s)
 
-// 2. IPv6 快速检测
+// 3. IPv6 快速检测
 function checkSingleIPv6(url, timeout) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -84,7 +114,7 @@ async function detectIPv6() {
     }
 }
 
-// 3. 对输入的 URL 发起简单的 HTTP 延迟测试
+// 4. 对备用入口发起 HTTP 延迟测试
 function testUrlLatency(targetUrl, timeout = 1800) {
     return new Promise((resolve) => {
         const start = performance.now();
@@ -103,7 +133,6 @@ function testUrlLatency(targetUrl, timeout = 1800) {
             }
         };
 
-        // 通过拼接 favicon.ico 进行链接测速
         try {
             const urlObj = new URL(targetUrl);
             img.src = `${urlObj.origin}/favicon.ico?t=${Date.now()}`;
@@ -113,13 +142,11 @@ function testUrlLatency(targetUrl, timeout = 1800) {
     });
 }
 
-// 并发测试 IPv4 的三个入口延迟
 async function checkIPv4Latencies() {
     const box = document.getElementById("pingBox");
     const listEl = document.getElementById("pingList");
     box.style.display = "block";
 
-    // 对 ipv6No 中的 3 个网址并发测速
     const tasks = LINKS.ipv6No.map(async (item) => {
         const latency = await testUrlLatency(item.url);
         return { name: item.name, latency };
@@ -127,7 +154,6 @@ async function checkIPv4Latencies() {
 
     const results = await Promise.all(tasks);
 
-    // 渲染延迟列表
     listEl.innerHTML = "";
     results.forEach((item) => {
         const li = document.createElement("li");
@@ -138,7 +164,7 @@ async function checkIPv4Latencies() {
     });
 }
 
-// 4. 渲染按钮与倒计时
+// 5. 渲染顶部核心入口按钮
 function renderButtons(list){
     const box = document.getElementById("btnGroup");
     box.innerHTML = "";
@@ -151,10 +177,42 @@ function renderButtons(list){
     });
 }
 
+// 6. 渲染底部服务卡片列表 (智能选择 v6 / v4 / 内网 目标)
+function renderServices(hasIPv6) {
+    const group = document.getElementById("servicesGroup");
+    group.innerHTML = "";
+
+    SERVICES.forEach(item => {
+        let targetUrl = "";
+        let tagText = "";
+
+        if (hasIPv6 && item.v6) {
+            targetUrl = item.v6;
+            tagText = "IPv6 直连入口";
+        } else if (item.v4) {
+            targetUrl = item.v4;
+            tagText = "IPv4 入口";
+        } else {
+            targetUrl = item.lan;
+            tagText = "仅限内网访问";
+        }
+
+        const a = document.createElement("a");
+        a.className = "service-card";
+        a.href = targetUrl;
+        a.target = "_blank"; // 底部快捷链接默认新标签页打开
+        a.innerHTML = `
+            <span class="service-name">${item.name}</span>
+            <span class="service-tag">${tagText}</span>
+        `;
+        group.appendChild(a);
+    });
+}
+
 function startCountdown(sec, callback){
     let t = sec;
     const el = document.getElementById("cdText");
-    el.innerText = `倒计时 ${t} 秒，自动跳转至 Cloudflare 入口`;
+    el.innerText = `倒计时 ${t} 秒，自动跳转至首选入口`;
     
     const timer = setInterval(() => {
         t -= 1;
@@ -162,15 +220,18 @@ function startCountdown(sec, callback){
             clearInterval(timer);
             callback();
         } else {
-            el.innerText = `倒计时 ${t} 秒，自动跳转至 Cloudflare 入口`;
+            el.innerText = `倒计时 ${t} 秒，自动跳转至首选入口`;
         }
     }, 1000);
 }
 
-// 5. 主程序逻辑
+// 7. 主逻辑流程
 (async function main(){
     const statusEl = document.getElementById("statusText");
     const hasIPv6 = await detectIPv6();
+
+    // 根据网络探测结果渲染底部服务列表
+    renderServices(hasIPv6);
 
     if (hasIPv6) {
         statusEl.className = "status ok";
@@ -181,15 +242,11 @@ function startCountdown(sec, callback){
         });
     } else {
         statusEl.className = "status no";
-        statusEl.innerText = "❌ 当前无可用 IPv6，已切换至备用线路";
+        statusEl.innerText = "❌ 当前无可用 IPv6，已切换至 Cloudflare 节点";
         
-        // 渲染按顺序排列的按钮（Cloudflare 为首选蓝色按钮）
         renderButtons(LINKS.ipv6No);
-
-        // 后台并发检测 3 个网址的延迟并展示在页面上
         checkIPv4Latencies();
 
-        // 倒计时结束后固定跳转至第 1 个入口（即 Cloudflare 首选入口）
         startCountdown(AUTO_COUNT, () => {
             location.assign(LINKS.ipv6No[0].url);
         });
