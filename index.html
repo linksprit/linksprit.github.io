@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>网络入口智能选择</title>
-
 <link rel="dns-prefetch" href="//pan.783326209.xyz">
 <link rel="dns-prefetch" href="//783326209.xyz">
 <link rel="dns-prefetch" href="//nat77.yyboxdns.com">
 <link rel="dns-prefetch" href="//linksprit.iepose.cn">
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:30px 16px;background:#f5f7fa;color:#222;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
-.container{max-width:560px;width:100%;background:#fff;padding:28px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+.container{max-width:580px;width:100%;background:#fff;padding:28px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
 .status{font-size:18px;margin-bottom:10px;font-weight:600;}
 .ok{color:#00a854;}
 .no{color:#f5222d;}
@@ -31,15 +29,13 @@ a.btn-secondary, button.btn-secondary{background:#eef2f7;color:#222;}
 a.btn-secondary:hover, button.btn-secondary:hover{background:#dde3ec;}
 button.btn-switch{background:#fff0f6;color:#c41d7f;border:1px dashed #ffadd2;}
 button.btn-switch:hover{background:#ffd6e7;}
-
-/* 底部导航区样式 */
 .section-title{margin-top:28px;margin-bottom:12px;font-size:15px;font-weight:600;color:#333;border-left:4px solid #1677ff;padding-left:8px;}
-.services-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:10px;}
-.service-card{display:flex;flex-direction:column;padding:12px;background:#f8f9fa;border:1px solid #eef2f7;border-radius:8px;text-decoration:none;color:#333;transition:0.2s;}
-.service-card:hover{background:#eef2f7;border-color:#d0d7de;}
-.service-name{font-size:14px;font-weight:500;margin-bottom:4px;}
-.service-tag{font-size:11px;color:#888;}
-
+/* 静态表格按钮布局 */
+.services-table{display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:10px;}
+.service-item{display:flex;flex-direction:column;padding:12px;background:#f8f9fa;border:1px solid #eef2f7;border-radius:8px;gap:6px;}
+.service-title{font-size:14px;font-weight:500;}
+.service-item a{font-size:12px;color:#1677ff;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.service-item a:hover{text-decoration:underline;}
 .tip-note{margin-top:24px;font-size:12px;color:#888;text-align:center;line-height:1.6;}
 </style>
 </head>
@@ -47,51 +43,73 @@ button.btn-switch:hover{background:#ffd6e7;}
 <div class="container">
 <div id="statusText" class="status detecting">⚡ 正在检测网络环境…</div>
 <div id="cdText" class="countdown"></div>
-
 <div id="pingBox" class="ping-box">
   <div>📊 IPv4 备用线路延迟检测：</div>
   <ul id="pingList"></ul>
 </div>
-
 <div id="btnGroup" class="btns"></div>
 
+<!-- 下方【服务快捷导航】完全静态写死，不受JS切换影响 -->
 <div class="section-title">📌 服务快捷导航</div>
-<div id="servicesGroup" class="services-grid"></div>
+<div class="services-table">
+    <div class="service-item">
+        <div class="service-title">NAS‑WebDAV</div>
+        <a target="_blank" href="http://192.168.2.105:5005">🏠内网：192.168.2.105:5005</a>
+        <a target="_blank" href="http://783326209.xyz:1505">⚡IPv6：783326209.xyz:1505</a>
+        <a target="_blank" href="http://dav.783326209.xyz">☁IPv4：dav.783326209.xyz</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">easylist</div>
+        <a target="_blank" href="http://192.168.2.105:5244">🏠内网：192.168.2.105:5244</a>
+        <a target="_blank" href="http://783326209.xyz:1524">⚡IPv6：783326209.xyz:1524</a>
+        <a target="_blank" href="http://pan.783326209.xyz">☁IPv4：pan.783326209.xyz</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">Lucky管理面板</div>
+        <a target="_blank" href="http://192.168.2.105:16601/">🏠内网：192.168.2.105:16601</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">xiaomi服务</div>
+        <a target="_blank" href="http://192.168.2.105:35041/">🏠内网：192.168.2.105:35041</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">收藏夹</div>
+        <a target="_blank" href="http://192.168.2.105:35092">🏠内网：192.168.2.105:35092</a>
+        <a target="_blank" href="http://783326209.xyz:1392">⚡IPv6：783326209.xyz:1392</a>
+        <a target="_blank" href="https://book.783326209.xyz">☁IPv4：book.783326209.xyz</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">笔记</div>
+        <a target="_blank" href="http://192.168.2.105:35092">🏠内网：192.168.2.105:35092</a>
+        <a target="_blank" href="http://linksprit.iepose.cn/">⚡IPv6：linksprit.iepose.cn</a>
+        <a target="_blank" href="https://web.783326209.xyz">☁IPv4：web.783326209.xyz</a>
+    </div>
+</div>
 
 <div class="tip-note">
-提示：IPv6直连为HTTP/HTTPS高速家庭链路；无IPv6或手动切换时默认走 Cloudflare 节点。
+提示：上方为自动检测首选入口；下方服务导航固定展示内网 / IPv6 / IPv4 全部地址，可手动选择访问。
 </div>
 </div>
-
 <script>
-// 1. 核心分流入口
+// 1.主入口线路（保持原样不变）
 const LINKS = {
     ipv6Yes: [
         { name: "easylist (IPv6直连)", url: "http://783326209.xyz:1524" },
-        { name: "NAS-WebDAV (IPv6直连)", url: "http://783326209.xyz:1505" }
+        { name: "NAS‑WebDAV (IPv6直连)", url: "http://783326209.xyz:1505" }
     ],
     ipv6No: [
-        { name: "Cloudflare 首选入口", url: "https://pan.783326209.xyz/" },     
+        { name: "Cloudflare 首选入口", url: "https://pan.783326209.xyz/" },
         { name: "NAT中转入口", url: "https://nat77.yyboxdns.com:11558" },
-        { name: "IPv4直连备用 (限流量)", url: "https://linksprit.iepose.cn/" } 
+        { name: "IPv4直连备用 (限流量)", url: "https://linksprit.iepose.cn/" }
     ]
 };
 
-// 2. 底部服务列表数据
-const SERVICES = [
-    { name: "easylist", v4: "http://pan.783326209.xyz", v6: "http://783326209.xyz:1524", lan: "http://192.168.2.105:5244" },
-    { name: "NAS-WebDAV", v4: "http://dav.783326209.xyz", v6: "http://783326209.xyz:1505", lan: "http://192.168.2.105:5005" },
-    { name: "收藏夹", v4: "https://book.783326209.xyz", v6: "http://783326209.xyz:1392", lan: "http://192.168.2.105:35092" },
-    { name: "Lucky管理面板", v4: "", v6: "", lan: "http://192.168.2.105:16601/" },
-    { name: "xiaomi服务", v4: "", v6: "", lan: "http://192.168.2.105:35041/" }
-];
+const DETECT_TIMEOUT = 1200;
+const AUTO_COUNT = 8;
+let timerInstance = null;
+let isDetectedIPv6 = false;
 
-const DETECT_TIMEOUT = 1200; // IPv6 检测超时 (ms)
-const AUTO_COUNT = 8;        // 跳转倒计时 (s)
-let timerInstance = null;    // 倒计时定时器句柄
-let isDetectedIPv6 = false;  // 记录实际探测到的 IPv6 支持状态
-
-// 3. IPv6 快速检测
+// IPv6检测
 function checkSingleIPv6(url, timeout) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -114,17 +132,15 @@ async function detectIPv6() {
     }
 }
 
-// 4. 对备用入口发起 HTTP 延迟测试
+// 线路延迟测速
 function testUrlLatency(targetUrl, timeout = 1800) {
     return new Promise((resolve) => {
         const start = performance.now();
         const img = new Image();
         let handled = false;
-        
         const timer = setTimeout(() => {
             if (!handled) { handled = true; img.src = ""; resolve(Infinity); }
         }, timeout);
-
         img.onload = img.onerror = () => {
             if (!handled) {
                 handled = true;
@@ -132,7 +148,6 @@ function testUrlLatency(targetUrl, timeout = 1800) {
                 resolve(Math.round(performance.now() - start));
             }
         };
-
         try {
             const urlObj = new URL(targetUrl);
             img.src = `${urlObj.origin}/favicon.ico?t=${Date.now()}`;
@@ -146,14 +161,11 @@ async function checkIPv4Latencies() {
     const box = document.getElementById("pingBox");
     const listEl = document.getElementById("pingList");
     box.style.display = "block";
-
     const tasks = LINKS.ipv6No.map(async (item) => {
         const latency = await testUrlLatency(item.url);
         return { name: item.name, latency };
     });
-
     const results = await Promise.all(tasks);
-
     listEl.innerHTML = "";
     results.forEach((item) => {
         const li = document.createElement("li");
@@ -164,12 +176,10 @@ async function checkIPv4Latencies() {
     });
 }
 
-// 5. 渲染顶部核心入口按钮 (含手动切换按钮)
+// 渲染顶部入口按钮
 function renderButtons(list, activeMode) {
     const box = document.getElementById("btnGroup");
     box.innerHTML = "";
-    
-    // 渲染常规线路按钮
     list.forEach((item, idx) => {
         const a = document.createElement("a");
         a.className = idx === 0 ? "btn btn-primary" : "btn btn-secondary";
@@ -177,8 +187,6 @@ function renderButtons(list, activeMode) {
         a.textContent = item.name;
         box.appendChild(a);
     });
-
-    // 如果设备实际支持 IPv6，额外渲染手动模式切换按钮
     if (isDetectedIPv6) {
         const switchBtn = document.createElement("button");
         switchBtn.className = "btn btn-switch";
@@ -193,46 +201,12 @@ function renderButtons(list, activeMode) {
     }
 }
 
-// 6. 渲染底部服务卡片列表
-function renderServices(useIPv6Mode) {
-    const group = document.getElementById("servicesGroup");
-    group.innerHTML = "";
-
-    SERVICES.forEach(item => {
-        let targetUrl = "";
-        let tagText = "";
-
-        if (useIPv6Mode && item.v6) {
-            targetUrl = item.v6;
-            tagText = "IPv6 直连入口";
-        } else if (item.v4) {
-            targetUrl = item.v4;
-            tagText = "IPv4 入口";
-        } else {
-            targetUrl = item.lan;
-            tagText = "仅限内网访问";
-        }
-
-        const a = document.createElement("a");
-        a.className = "service-card";
-        a.href = targetUrl;
-        a.target = "_blank";
-        a.innerHTML = `
-            <span class="service-name">${item.name}</span>
-            <span class="service-tag">${tagText}</span>
-        `;
-        group.appendChild(a);
-    });
-}
-
-// 倒计时控制器
+// 倒计时
 function startCountdown(sec, callback){
     if (timerInstance) clearInterval(timerInstance);
-    
     let t = sec;
     const el = document.getElementById("cdText");
     el.innerText = `倒计时 ${t} 秒，自动跳转至首选入口`;
-    
     timerInstance = setInterval(() => {
         t -= 1;
         if (t < 0) {
@@ -244,19 +218,15 @@ function startCountdown(sec, callback){
     }, 1000);
 }
 
-// 7. 切换 IPv4 / IPv6 展示模式
+// 切换v4/v6模式
 function switchMode(targetMode) {
     const statusEl = document.getElementById("statusText");
     const pingBox = document.getElementById("pingBox");
-
     if (targetMode === 'v4') {
         statusEl.className = "status no";
         statusEl.innerText = "🔀 已手动切换至 IPv4 线路模式";
-        
-        renderServices(false);
         renderButtons(LINKS.ipv6No, 'v4');
         checkIPv4Latencies();
-
         startCountdown(AUTO_COUNT, () => {
             location.assign(LINKS.ipv6No[0].url);
         });
@@ -264,21 +234,17 @@ function switchMode(targetMode) {
         statusEl.className = "status ok";
         statusEl.innerText = "✅ 当前为 IPv6 高速线路模式";
         pingBox.style.display = "none";
-
-        renderServices(true);
         renderButtons(LINKS.ipv6Yes, 'v6');
-
         startCountdown(AUTO_COUNT, () => {
             location.assign(LINKS.ipv6Yes[0].url);
         });
     }
 }
 
-// 8. 主逻辑流程
+// 主入口
 (async function main(){
     const statusEl = document.getElementById("statusText");
     isDetectedIPv6 = await detectIPv6();
-
     if (isDetectedIPv6) {
         switchMode('v6');
     } else {
