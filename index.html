@@ -75,6 +75,154 @@ a.btn-secondary:hover{background:#dde3ec;}
 </div>
 
 <script>
+let hasUserNavigated = false; 
+
+const LINKS = {
+    lan: [
+        { name: "🏠 Easylist 内网直连", url: "http://192.168.2.105:5244" },
+        { name: "🏠 网址收藏页 内网直连", url: "http://192.168.2.105:35092" },
+        { name: "🏠 Notebook 内网直连", url: "http://192.168.2.105:35091" }
+    ],
+    ipv6: [
+        { name: "⚡ 网址收藏页 (IPv6高速)", url: "http://783326209.xyz:1392" },
+        { name: "⚡ Easylist (IPv6高速)", url: "http://783326209.xyz:1524" },
+        { name: "📓 Notebook (外网)", url: "https://linksprit.iepose.cn/" }
+    ],
+    ipv4: [
+        { name: "📖 网址收藏页 (IPv4云端)", url: "https://web.783326209.xyz" },
+        { name: "☁ Easylist (IPv4云端)", url: "https://pan.783326209.xyz/" },
+        { name: "📓 Notebook (外网)", url: "https://linksprit.iepose.cn/" }
+    ]
+};
+
+const LAN_TIMEOUT = 600; // 移动端优化：内网响应极快，600ms 足矣
+const IPV6_TIMEOUT = 1200;
+
+// 1. 极速内网检测（使用 Image 探针替代 Fetch，完美兼容移动端 Safari/Chrome）
+function detectLan(){
+    return new Promise((resolve)=>{
+        let done = false;
+        const img = new Image();
+        
+        const timer = setTimeout(() => {
+            if (!done) {
+                done = true;
+                img.src = "";
+                resolve(false);
+            }
+        }, LAN_TIMEOUT);
+
+        // 只要能连接上目标 IP 并收到响应（哪怕返回 404/403 触发 onerror），均判定为内网通
+        img.onload = img.onerror = () => {
+            if (!done) {
+                done = true;
+                clearTimeout(timer);
+                resolve(true);
+            }
+        };
+
+        // 探测内网存在响应的端口/资源
+        img.src = "http://192.168.2.105:5005/logo.png?_t=" + Date.now();
+    });
+}
+
+// 2. IPv6 通断检测
+async function detectIPv6(){
+    return new Promise((resolve)=>{
+        const img = new Image();
+        let done = false;
+        const t = setTimeout(()=>{ if(!done){ done=true; img.src=""; resolve(false); } }, IPV6_TIMEOUT);
+        img.onload = () => { if(!done){ done=true; clearTimeout(t); resolve(true); } };
+        img.onerror = () => { if(!done){ done=true; clearTimeout(t); resolve(false); } };
+        img.src = "https://ipv6.test-ipv6.com/images-idx/00.gif?t=" + Date.now();
+    });
+}
+
+// 3. 渲染按钮
+function renderButtons(list, modeDesc, statusClass) {
+    if (hasUserNavigated) return;
+    
+    const statusEl = document.getElementById("statusText");
+    statusEl.className = "status " + statusClass;
+    statusEl.innerText = modeDesc;
+
+    const box = document.getElementById("btnGroup");
+    box.innerHTML = "";
+    list.forEach((item, idx) => {
+        const a = document.createElement("a");
+        a.className = idx === 0 ? "btn btn-primary" : "btn btn-secondary";
+        a.href = item.url;
+        a.textContent = item.name;
+        a.onclick = () => {
+            hasUserNavigated = true;
+        };
+        box.appendChild(a);
+    });
+}
+
+// 主流程控制
+(async function main(){
+    const isLan = await detectLan();
+    if (hasUserNavigated) return;
+    
+    if (isLan) {
+        renderButtons(LINKS.lan, "🟢 已接入 192.168.2.x 内网环境", "ok");
+        return;
+    }
+
+    const isIpv6 = await detectIPv6();
+    if (hasUserNavigated) return;
+
+    if (isIpv6) {
+        renderButtons(LINKS.ipv6, "🚀 当前网络支持 IPv6，已切换至高速直连", "ok");
+    } else {
+        renderButtons(LINKS.ipv4, "🟡 当前无内网及 IPv6，已回退至 IPv4 云端线路", "no");
+    }
+})();
+</script>
+</body>
+</html>
+<div id="btnGroup" class="btns"></div>
+
+<div class="section-title">📌 服务快捷导航</div>
+<div class="services-table">
+    <div class="service-item">
+        <div class="service-title">easylist</div>
+        <a target="_blank" href="http://192.168.2.105:5244">🏠内网：192.168.2.105:5244</a>
+        <a target="_blank" href="http://783326209.xyz:1524">⚡IPv6：783326209.xyz:1524</a>
+        <a target="_blank" href="https://pan.783326209.xyz">☁IPv4：pan.783326209.xyz</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">网址收藏页</div>
+        <a target="_blank" href="http://192.168.2.105:35092">🏠内网：192.168.2.105:35092</a>
+        <a target="_blank" href="http://783326209.xyz:1392">⚡IPv6：783326209.xyz:1392</a>
+        <a target="_blank" href="https://web.783326209.xyz">☁IPv4：web.783326209.xyz</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">Notebook</div>
+        <a target="_blank" href="http://192.168.2.105:35091">🏠内网：192.168.2.105:35091</a>
+        <a target="_blank" href="https://linksprit.iepose.cn/">☁外网：linksprit.iepose.cn</a>
+        <a target="_blank" href="https://web.783326209.xyz">☁IPv4：note.783326209.xyz</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">NAS‑WebDAV</div>
+        <a target="_blank" href="http://192.168.2.105:5005">🏠内网：192.168.2.105:5005</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">Lucky面板</div>
+        <a target="_blank" href="http://192.168.2.105:16601/">🏠内网：192.168.2.105:16601</a>
+    </div>
+    <div class="service-item">
+        <div class="service-title">xiaomi服务</div>
+        <a target="_blank" href="http://192.168.2.105:35041/">🏠内网：192.168.2.105:35041</a>
+    </div>
+</div>
+<div class="tip-note">
+提示：上方根据内网及 IPv6 状态自动呈现最优入口；点击任意按钮后将立即锁定并终止检测。
+</div>
+</div>
+
+<script>
 let hasUserNavigated = false; // 用户点击标记，用于终止后续异步检测回调
 
 const LINKS = {
